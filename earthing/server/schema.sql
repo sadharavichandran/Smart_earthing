@@ -1,0 +1,77 @@
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  role ENUM('user','official','technician') NOT NULL,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(180) NOT NULL,
+  phone VARCHAR(30) NULL,
+  emp_id VARCHAR(40) NULL,
+  dept VARCHAR(120) NULL,
+  area VARCHAR(120) NOT NULL DEFAULT 'Coimbatore Zone',
+  password_hash VARCHAR(255) NOT NULL,
+  login_count INT NOT NULL DEFAULT 0,
+  last_login_at DATETIME NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_user_email_role (email, role)
+);
+
+CREATE TABLE IF NOT EXISTS poles (
+  id VARCHAR(20) PRIMARY KEY,
+  area VARCHAR(120) NOT NULL,
+  status ENUM('safe','warning','critical') NOT NULL,
+  leakage DECIMAL(10,2) NOT NULL,
+  resistance DECIMAL(10,2) NOT NULL,
+  continuity VARCHAR(40) NOT NULL,
+  voltage DECIMAL(10,2) NOT NULL,
+  moisture DECIMAL(10,2) NOT NULL,
+  temp DECIMAL(10,2) NOT NULL,
+  last_check VARCHAR(60) NOT NULL,
+  cause VARCHAR(255) NULL,
+  history_json JSON NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  pole_id VARCHAR(20) NOT NULL,
+  fault VARCHAR(255) NOT NULL,
+  severity ENUM('Critical','Warning','Info') NOT NULL,
+  time VARCHAR(20) NOT NULL,
+  date VARCHAR(20) NOT NULL,
+  status ENUM('Open','Assigned','Resolved') NOT NULL,
+  tech VARCHAR(120) NOT NULL DEFAULT '',
+  notes TEXT NULL,
+  material TEXT NULL,
+  image LONGTEXT NULL,
+  completed_at VARCHAR(40) NULL,
+  priority INT NOT NULL DEFAULT 3,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_alert_pole FOREIGN KEY (pole_id) REFERENCES poles(id)
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  area VARCHAR(120) NOT NULL,
+  description TEXT NOT NULL,
+  user_name VARCHAR(120) NOT NULL,
+  reported_time VARCHAR(40) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS checklists (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  pole_id VARCHAR(20) NOT NULL,
+  area VARCHAR(120) NOT NULL,
+  steps_json JSON NOT NULL,
+  completed_steps INT NOT NULL,
+  tech VARCHAR(120) NOT NULL,
+  created_at_text VARCHAR(40) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_checklist_pole FOREIGN KEY (pole_id) REFERENCES poles(id)
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  setting_key VARCHAR(80) PRIMARY KEY,
+  setting_value JSON NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
